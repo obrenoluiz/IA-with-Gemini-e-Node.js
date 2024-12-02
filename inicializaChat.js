@@ -5,9 +5,13 @@ dotenv.config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const funcoes = {
+export const funcoes = {
     taxaJurosParcelamento: ({ value }) => {
-        const meses = typeof value === "string" ? parseInt(value) : value;
+        if (!value || isNaN(value)) {
+            return "Por favor, informe o número de parcelas como um valor válido.";
+        }
+
+        const meses = typeof value === "string" ? parseInt(value, 10) : value;
 
         if (meses <= 6) {
             return 3;
@@ -15,9 +19,13 @@ const funcoes = {
             return 5;
         } else if (meses <= 24) {
             return 7;
+        } else {
+            return "Não há taxa de juros definida para o número de parcelas fornecido.";
         }
     }
 };
+
+
 
 const tools = [
     {
@@ -39,6 +47,7 @@ const tools = [
     }
 ];
 
+
 const model = genAI.getGenerativeModel(
     {
         model: "gemini-1.5-flash",
@@ -49,9 +58,9 @@ const model = genAI.getGenerativeModel(
     },
 );
 
-let chat;
+export let chat;
 
-function inicializaChat() {
+export function inicializaChat() {
     chat = model.startChat({
         history: [
             {
@@ -70,14 +79,17 @@ function inicializaChat() {
                 role: "model",
                 parts: [{ text: "Entendido." }],
             },
+            {
+                role: "user",
+                parts: [{ text: "Você pode calcular a taxa de juros para parcelamento com base no número de parcelas fornecidas pelo cliente. Use a função `taxaJurosParcelamento` sempre que alguém perguntar sobre taxas de parcelamento." }],
+            },
+            {
+                role: "model",
+                parts: [{ text: "Entendido. Sempre que alguém perguntar sobre taxas de parcelamento, utilizarei a função adequada." }],
+            },
         ],
         generationConfig: {
             maxOutputTokens: 1000,
         },
     });
-}
-
-export {
-    chat,
-    inicializaChat
 }

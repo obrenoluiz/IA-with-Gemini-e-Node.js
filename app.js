@@ -13,6 +13,8 @@ const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use('/static', express.static(join(__dirname, 'static'), { extensions: ['css', 'svg', 'js'] }));
 
+inicializaChat();
+
 app.post('/chat', async (req, res) => {
   try {
     const mensagem = req.body?.mensagem;
@@ -22,7 +24,7 @@ app.post('/chat', async (req, res) => {
     }
     const response = await executaChat(mensagem);
 
-    res.json({ response: response.response });
+    res.json({ response: response });
 
   } catch (error) {
     console.error('Error no endpoint do chat:', error);
@@ -31,7 +33,6 @@ app.post('/chat', async (req, res) => {
 });
 
 app.get('/', (req, res) => {
-  inicializaChat();
   res.sendFile(join(__dirname, 'templates', 'chat.html'));
 });
 
